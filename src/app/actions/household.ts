@@ -34,7 +34,7 @@ export async function createHousehold(householdName: string) {
 
   const { data: household, error: hErr } = await db
     .from("households")
-    .insert({ name: householdName })
+    .insert({ name: householdName } as any)
     .select()
     .single();
   if (hErr) throw new Error(hErr.message);
