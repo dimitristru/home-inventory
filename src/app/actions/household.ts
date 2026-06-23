@@ -2,10 +2,10 @@
 import { createServerClient } from "@supabase/ssr";
 import { createClient as createAdminClient } from "@supabase/supabase-js";
 import { cookies } from "next/headers";
-import type { Database } from "@/types/database";
 
-function adminClient() {
-  return createAdminClient<Database>(
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+function adminClient(): any {
+  return createAdminClient(
     process.env.NEXT_PUBLIC_SUPABASE_URL!,
     process.env.SUPABASE_SERVICE_ROLE_KEY!
   );
@@ -13,13 +13,13 @@ function adminClient() {
 
 async function getUserId(): Promise<string> {
   const cookieStore = await cookies();
-  const supabase = createServerClient<Database>(
+  const supabase = createServerClient(
     process.env.NEXT_PUBLIC_SUPABASE_URL!,
     process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
     {
       cookies: {
         getAll: () => cookieStore.getAll(),
-        setAll: (c) => c.forEach(({ name, value, options }) => cookieStore.set(name, value, options)),
+        setAll: (c: any[]) => c.forEach(({ name, value, options }: any) => cookieStore.set(name, value, options)),
       },
     }
   );
@@ -34,7 +34,7 @@ export async function createHousehold(householdName: string) {
 
   const { data: household, error: hErr } = await db
     .from("households")
-    .insert({ name: householdName } as any)
+    .insert({ name: householdName })
     .select()
     .single();
   if (hErr) throw new Error(hErr.message);
