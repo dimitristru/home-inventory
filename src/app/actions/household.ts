@@ -28,24 +28,24 @@ async function getUserId(): Promise<string> {
   return user.id;
 }
 
-export async function createHousehold(name: string) {
+export async function createHousehold(householdName: string) {
   const userId = await getUserId();
-  const admin = adminClient();
+  const db = adminClient();
 
-  const { data: household, error: hErr } = await admin
+  const { data: household, error: hErr } = await db
     .from("households")
-    .insert({ name })
+    .insert({ name: householdName })
     .select()
     .single();
   if (hErr) throw new Error(hErr.message);
 
-  const { error: pErr } = await admin
+  const { error: pErr } = await db
     .from("profiles")
     .update({ household_id: household.id })
     .eq("id", userId);
   if (pErr) throw new Error(pErr.message);
 
-  await admin.from("categories").insert([
+  await db.from("categories").insert([
     { household_id: household.id, name: "Φαγητό", icon: "🛒", color: "#22c55e" },
     { household_id: household.id, name: "Καθαριστικά", icon: "🧹", color: "#3b82f6" },
     { household_id: household.id, name: "Προσωπική φροντίδα", icon: "🧴", color: "#a855f7" },
@@ -53,7 +53,7 @@ export async function createHousehold(name: string) {
     { household_id: household.id, name: "Άλλο", icon: "📦", color: "#6b7280" },
   ]);
 
-  await admin.from("locations").insert([
+  await db.from("locations").insert([
     { household_id: household.id, name: "Σπίτι", icon: "🏠" },
     { household_id: household.id, name: "Αποθήκη", icon: "📦" },
   ]);
@@ -63,16 +63,16 @@ export async function createHousehold(name: string) {
 
 export async function joinHousehold(code: string) {
   const userId = await getUserId();
-  const admin = adminClient();
+  const db = adminClient();
 
-  const { data: household, error } = await admin
+  const { data: household, error } = await db
     .from("households")
     .select()
     .eq("invite_code", code.trim().toLowerCase())
     .single();
   if (error || !household) throw new Error("Ο κωδικός δεν βρέθηκε");
 
-  const { error: pErr } = await admin
+  const { error: pErr } = await db
     .from("profiles")
     .update({ household_id: household.id })
     .eq("id", userId);
